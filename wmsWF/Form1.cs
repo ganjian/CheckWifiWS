@@ -16,10 +16,16 @@ namespace wmsWF
         public Form1()
         {
             InitializeComponent();
+
+            //  NetworkChange 使应用程序可以在网络接口（也称为网卡或网络适配器）的 Internet 协议(IP) 地址更改时收到通知。
+
+            //在网络的可用性更改时发生。
             NetworkChange.NetworkAvailabilityChanged += NetworkAvailabilityChanged;
+
+            //在网络接口的 IP 地址更改时发生。
             NetworkChange.NetworkAddressChanged += NetworkAddressChanged;
 
-            log4net.Config.XmlConfigurator.Configure();//.DOMConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();//.DOMConfigurator.Configure();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -46,9 +52,6 @@ namespace wmsWF
 
         private static void NetworkAddressChanged(object sender, EventArgs e)
         {
-            // Console.WriteLine("Current IP Addresses:");
-
-            // List<> list = new List<log>();
             StringBuilder sb = new StringBuilder();
             sb.Append("Current IP Addresses:");
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
@@ -61,15 +64,7 @@ namespace wmsWF
                 }
             }
             LogHelper.WriteLog("" + sb.ToString());
-            int count = 0;
-            if (MyPing(new string[] { "10.83.29.212" }, out count))
-            {
-                LogHelper.WriteLog("count:" + count);
-            }
-            else
-            {
-                LogHelper.WriteLog("failed ping");
-            }
+
 
         }
 
@@ -77,7 +72,7 @@ namespace wmsWF
         {
             if (e.IsAvailable)
             {
-                LogHelper.WriteLog("Network Available" ); 
+                LogHelper.WriteLog("Network Available");
             }
             else
             {
@@ -85,76 +80,39 @@ namespace wmsWF
             }
         }
 
-        private const int INTERNET_CONNECTION_MODEM = 1;
-        private const int INTERNET_CONNECTION_LAN = 2;
 
-        [System.Runtime.InteropServices.DllImport("winInet.dll")]
-        private static extern bool InternetGetConnectedState(ref int dwFlag, int dwReserved);
 
-        /// <summary>
-        /// 判断本地的连接状态
-        /// </summary>
-        /// <returns></returns>
-        private static bool LocalConnectionStatus()
-        {
-            System.Int32 dwFlag = new Int32();
-            if (!InternetGetConnectedState(ref dwFlag, 0))
-            {
-                Console.WriteLine("LocalConnectionStatus--未连网!");
-                return false;
-            }
-            else
-            {
-                if ((dwFlag & INTERNET_CONNECTION_MODEM) != 0)
-                {
-                    Console.WriteLine("LocalConnectionStatus--采用调制解调器上网。");
-                    return true;
-                }
-                else if ((dwFlag & INTERNET_CONNECTION_LAN) != 0)
-                {
-                    Console.WriteLine("LocalConnectionStatus--采用网卡上网。");
-                    return true;
-                }
-            }
-            return false;
-        }
 
 
         /// <summary>
-        /// Ping命令检测网络是否畅通
+        /// 计算建立的 TCP 连接数。
         /// </summary>
-        /// <param name="urls">URL数据</param>
-        /// <param name="errorCount">ping时连接失败个数</param>
-        /// <returns></returns>
-        public static bool MyPing(string[] urls, out int errorCount)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnTCPCount_Click(object sender, EventArgs e)
         {
-            bool isconn = true;
-            Ping ping = new Ping();
-            errorCount = 0;
-            try
-            {
-                PingReply pr;
-                for (int i = 0; i < urls.Length; i++)
-                {
-                    pr = ping.Send(urls[i]);
-                    if (pr.Status != IPStatus.Success)
-                    {
-                        isconn = false;
-                        errorCount++;
-                    }
-                    Console.WriteLine("Ping " + urls[i] + "    " + pr.Status.ToString());
-                }
-            }
-            catch
-            {
-                isconn = false;
-                errorCount = urls.Length;
-            }
-            //if (errorCount > 0 && errorCount < 3)
-            //  isconn = true;
-            return isconn;
+            string info = InterMethod.CountTcpConnections();
+            txtInfo.Text += info;
         }
 
-        
+        /// <summary>
+        /// Ping 外部IP
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnPing_Click(object sender, EventArgs e)
+        {
+            int count = 0;
+            string[] strurl = new string[] { "10.0.0.1", "www.baidu.com", "10.83.29.212" };
+
+            string info = (InterMethod.MyPing(strurl, out count));
+            txtInfo.Text += info;
+        }
+
+        private void btnInterFaceSummary_Click(object sender, EventArgs e)
+        {
+            string info = InterMethod.ShowInterfaceSummary();
+            txtInfo.Text += info;
+        }
     }
 }
