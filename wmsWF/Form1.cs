@@ -18,6 +18,8 @@ namespace wmsWF
             InitializeComponent();
             NetworkChange.NetworkAvailabilityChanged += NetworkAvailabilityChanged;
             NetworkChange.NetworkAddressChanged += NetworkAddressChanged;
+
+            log4net.Config.XmlConfigurator.Configure();//.DOMConfigurator.Configure();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -44,25 +46,42 @@ namespace wmsWF
 
         private static void NetworkAddressChanged(object sender, EventArgs e)
         {
-            Console.WriteLine("Current IP Addresses:");
+            // Console.WriteLine("Current IP Addresses:");
+
+            // List<> list = new List<log>();
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Current IP Addresses:");
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
             {
                 foreach (UnicastIPAddressInformation addr in ni.GetIPProperties().UnicastAddresses)
                 {
-                    MessageBox.Show(string.Format(("    - {0} (lease expires {1})"), addr.Address, DateTime.Now + new TimeSpan(0, 0, (int)addr.DhcpLeaseLifetime)));
+                    long speed = ni.Speed;
+                    sb.Append(string.Format((" {0} (lease expires {1})---"), addr.Address, DateTime.Now + new TimeSpan(0, 0, (int)addr.DhcpLeaseLifetime)));
+                    //
                 }
             }
+            LogHelper.WriteLog("" + sb.ToString());
+            int count = 0;
+            if (MyPing(new string[] { "10.83.29.212" }, out count))
+            {
+                LogHelper.WriteLog("count:" + count);
+            }
+            else
+            {
+                LogHelper.WriteLog("failed ping");
+            }
+
         }
 
         private static void NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
         {
             if (e.IsAvailable)
             {
-                MessageBox.Show("Network Available");
+                LogHelper.WriteLog("Network Available" ); 
             }
             else
             {
-                MessageBox.Show("Network Unavailable");
+                LogHelper.WriteLog("Network Unavailable");
             }
         }
 
@@ -135,5 +154,7 @@ namespace wmsWF
             //  isconn = true;
             return isconn;
         }
+
+        
     }
 }

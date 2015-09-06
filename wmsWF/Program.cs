@@ -14,9 +14,11 @@ namespace wmsWF
         [STAThread]
         static void Main()
         {
+            log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo("log4netconfig.xml"));
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+
         }
     }
 }
